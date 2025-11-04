@@ -1,0 +1,30 @@
+/* Navbar.css */
+.custom-navbar {
+  font-family: 'Golos Text', sans-serif;
+}
+
+.navbar-breadcrumbs {
+  padding-left: 220px; /* Отступ слева для хлебных крошек */
+  background-color: #000000;
+  width: 100%;
+  font-size: 18px; /* Добавил размер шрифта */
+}
+
+/* Стили для бренда в центре */
+.navbar-brand-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .navbar-breadcrumbs {
+    padding-left: 20px; /* Меньший отступ на мобильных */
+    font-size: 16px; /* Меньший шрифт на мобильных */
+  }
+  
+  .custom-navbar .container .d-flex {
+    height: 60px !important; /* Уменьшаем высоту на мобильных */
+  }
+}

@@ -170,24 +170,35 @@ func (h *Handler) UpdateStarCartItem(ctx *gin.Context) {
 // ======================
 
 // GetStars godoc
-// @Summary Получить список звёзд
+// @Summary Получить список звёзд с фильтрацией
 // @Tags Stars
 // @Accept  json
 // @Produce  json
 // @Param title query string false "Поиск по названию"
+// @Param distance_min query number false "Минимальное расстояние"
+// @Param distance_max query number false "Максимальное расстояние"
+// @Param star_type query string false "Тип звезды"
+// @Param magnitude_min query number false "Минимальная светимость"
+// @Param magnitude_max query number false "Максимальная светимость"
+// @Param temperature_min query number false "Минимальная температура"
+// @Param temperature_max query number false "Максимальная температура"
 // @Security BearerAuth
 // @Success 200 {array} ds.Star
 // @Failure 500 {object} map[string]string
 // @Router /api/stars [get]
 func (h *Handler) GetStars(ctx *gin.Context) {
-	search := ctx.Query("title")
-	var stars []ds.Star
-	var err error
-	if search == "" {
-		stars, err = h.Repository.GetStars()
-	} else {
-		stars, err = h.Repository.SearchStarByTitle(search)
+	filters := map[string]interface{}{
+		"title":           ctx.Query("title"),
+		"distance_min":    ctx.Query("distance_min"),
+		"distance_max":    ctx.Query("distance_max"),
+		"star_type":       ctx.Query("star_type"),
+		"magnitude_min":   ctx.Query("magnitude_min"),
+		"magnitude_max":   ctx.Query("magnitude_max"),
+		"temperature_min": ctx.Query("temperature_min"),
+		"temperature_max": ctx.Query("temperature_max"),
 	}
+
+	stars, err := h.Repository.GetStarsWithFilters(filters)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

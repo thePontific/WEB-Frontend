@@ -43,3 +43,44 @@ func (r *Repository) SearchStarByTitle(title string) ([]ds.Star, error) {
 	}
 	return stars, nil
 }
+
+// GetStarsWithFilters получает звезды с фильтрацией
+func (r *Repository) GetStarsWithFilters(filters map[string]interface{}) ([]ds.Star, error) {
+	query := r.db.Where("is_delete = false")
+
+	if title, ok := filters["title"].(string); ok && title != "" {
+		query = query.Where("title ILIKE ?", "%"+title+"%")
+	}
+
+	if distanceMin, ok := filters["distance_min"].(string); ok && distanceMin != "" {
+		query = query.Where("distance >= ?", distanceMin)
+	}
+
+	if distanceMax, ok := filters["distance_max"].(string); ok && distanceMax != "" {
+		query = query.Where("distance <= ?", distanceMax)
+	}
+
+	if starType, ok := filters["star_type"].(string); ok && starType != "" {
+		query = query.Where("star_type = ?", starType)
+	}
+
+	if magnitudeMin, ok := filters["magnitude_min"].(string); ok && magnitudeMin != "" {
+		query = query.Where("magnitude >= ?", magnitudeMin)
+	}
+
+	if magnitudeMax, ok := filters["magnitude_max"].(string); ok && magnitudeMax != "" {
+		query = query.Where("magnitude <= ?", magnitudeMax)
+	}
+
+	if tempMin, ok := filters["temperature_min"].(string); ok && tempMin != "" {
+		query = query.Where("temperature >= ?", tempMin)
+	}
+
+	if tempMax, ok := filters["temperature_max"].(string); ok && tempMax != "" {
+		query = query.Where("temperature <= ?", tempMax)
+	}
+
+	var stars []ds.Star
+	err := query.Find(&stars).Error
+	return stars, err
+}
