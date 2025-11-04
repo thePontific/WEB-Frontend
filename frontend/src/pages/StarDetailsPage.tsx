@@ -2,13 +2,12 @@ import type { FC } from 'react'
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { starsApi } from '../modules/api'
-import type { Star } from '../types'
+import { starsApi, type StarDetailsResponse } from '../modules/api'
 import './StarDetailsPage.css'
 
 const StarDetailsPage: FC = () => {
   const { id } = useParams()
-  const [star, setStar] = useState<Star | null>(null)
+  const [starData, setStarData] = useState<StarDetailsResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
 
@@ -19,8 +18,8 @@ const StarDetailsPage: FC = () => {
       setLoading(true)
       setError('')
       try {
-        const starData = await starsApi.getStarDetails(Number(id))
-        setStar(starData)
+        const data = await starsApi.getStarDetails(Number(id))
+        setStarData(data)
       } catch (err) {
         setError('Не удалось загрузить данные о звезде')
         console.error('Ошибка загрузки деталей звезды:', err)
@@ -45,7 +44,7 @@ const StarDetailsPage: FC = () => {
     )
   }
 
-  if (error || !star) {
+  if (error || !starData) {
     return (
       <>
         <Navbar />
@@ -59,9 +58,7 @@ const StarDetailsPage: FC = () => {
     )
   }
 
-  const imageUrl = star.ImageName 
-    ? `http://127.0.0.1:9000/cardsandromeda/${star.ImageName}`
-    : '/images/default-star.png'
+  const { star, imageURL } = starData
 
   return (
     <>
@@ -69,7 +66,7 @@ const StarDetailsPage: FC = () => {
       <main>
         <div className="star-hero">
           <img 
-            src={imageUrl}
+            src={imageURL}
             alt={star.Title}
             className="star-hero-image"
             onError={(e) => {

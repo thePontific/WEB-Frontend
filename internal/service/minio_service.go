@@ -40,12 +40,19 @@ func NewMinioService() *MinioService {
 	return &MinioService{Client: client}
 }
 
-// Генерация URL для SPA
+// Генерация URL для SPA - ИСПРАВЛЕННАЯ ВЕРСИЯ
 func (s *MinioService) GetImageURL(imageName string) string {
 	if imageName == "" {
 		return ""
 	}
-	return fmt.Sprintf("http://%s/%s/%s", MinioEndpoint, BucketName, imageName)
+
+	// ⚠️ ДОБАВЛЯЕМ РАСШИРЕНИЕ .jpg ЕСЛИ ЕГО НЕТ
+	fileName := imageName
+	if !strings.Contains(fileName, ".") {
+		fileName = fileName + ".jpg"
+	}
+
+	return fmt.Sprintf("http://%s/%s/%s", MinioEndpoint, BucketName, fileName)
 }
 
 // Загрузка файла

@@ -77,8 +77,8 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	protected.PUT("/users/me", h.UpdateUser)
 
 	// Работа со звёздами
-	protected.GET("/stars", h.GetStars)           // все роли
-	protected.GET("/stars/:id", h.GetStarDetails) // все роли
+	api.GET("/stars", h.GetStars)           // все роли
+	api.GET("/stars/:id", h.GetStarDetails) // все роли
 	protected.POST("/stars", h.WithAuthCheck(role.Manager, role.Admin), h.CreateStar)
 	protected.PUT("/stars/:id", h.WithAuthCheck(role.Manager, role.Admin), h.UpdateStar)
 	protected.DELETE("/stars/:id", h.WithAuthCheck(role.Manager, role.Admin), h.DeleteStar)
@@ -227,7 +227,15 @@ func (h *Handler) GetStarDetails(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "star not found"})
 		return
 	}
+
+	// ДОБАВЬТЕ ОТЛАДКУ
+	fmt.Printf("🎯 GetStarDetails debug: star.ImageName='%s'\n", star.ImageName)
+
 	starURL := h.MinioService.GetImageURL(star.ImageName)
+
+	// ДОБАВЬТЕ ОТЛАДКУ
+	fmt.Printf("🎯 GetStarDetails debug: starURL='%s'\n", starURL)
+
 	ctx.JSON(http.StatusOK, gin.H{"star": star, "imageURL": starURL})
 }
 

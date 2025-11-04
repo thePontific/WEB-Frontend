@@ -1,124 +1,49 @@
+// pages/StarsPage.tsx
 import type { FC } from 'react'
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
-import { starsApi } from '../modules/api'
-import type { Star } from '../types'
+import { FilterGroup } from '../components/FilterGroup'
+import { useStarsFilter } from '../hooks/useStarsFilter'
+import type { StarFilters } from '../types'
 import './StarsPage.css'
 
 const StarsPage: FC = () => {
-  const [stars, setStars] = useState<Star[]>([])
-  const [filteredStars, setFilteredStars] = useState<Star[]>([])
-  const [loading, setLoading] = useState(false)
-  
-  // Состояния фильтров
-  const [searchTerm, setSearchTerm] = useState('')
-  const [minDistance, setMinDistance] = useState('')
-  const [maxDistance, setMaxDistance] = useState('')
-  const [starType, setStarType] = useState('')
-  const [minMagnitude, setMinMagnitude] = useState('')
-  const [maxMagnitude, setMaxMagnitude] = useState('')
-  const [minTemperature, setMinTemperature] = useState('')
-  const [maxTemperature, setMaxTemperature] = useState('')
-  
-  // Состояния для выпадающего меню
+  // Использование пользовательского хука (5.1 Хук состояния)
+  const { 
+    stars, 
+    loading, 
+    filters, 
+    setFilters, 
+    applyFilters, 
+    resetFilters 
+  } = useStarsFilter()
+   useEffect(() => {
+    console.log('🎯 Filters changed:', filters)
+  }, [filters])
+
+  useEffect(() => {
+    console.log('🎯 Stars loaded:', stars.length)
+  }, [stars])
+  // Состояние для показа/скрытия фильтров
   const [showFilters, setShowFilters] = useState(false)
 
-  const loadStars = async () => {
-    setLoading(true)
-    try {
-      const data = await starsApi.getStars()
-      setStars(data)
-      setFilteredStars(data)
-    } catch (error) {
-      console.error('Ошибка загрузки звезд:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Функция применения фильтров
-  const applyFilters = () => {
-    let result = stars
-
-    if (searchTerm) {
-      result = result.filter(star => 
-        star.Title.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    if (minDistance) {
-      result = result.filter(star => star.Distance >= parseFloat(minDistance))
-    }
-    if (maxDistance) {
-      result = result.filter(star => star.Distance <= parseFloat(maxDistance))
-    }
-
-    if (starType) {
-      result = result.filter(star => star.StarType === starType)
-    }
-
-    if (minMagnitude) {
-      result = result.filter(star => star.Magnitude >= parseFloat(minMagnitude))
-    }
-    if (maxMagnitude) {
-      result = result.filter(star => star.Magnitude <= parseFloat(maxMagnitude))
-    }
-
-    if (minTemperature) {
-      result = result.filter(star => star.Temperature >= parseInt(minTemperature))
-    }
-    if (maxTemperature) {
-      result = result.filter(star => star.Temperature <= parseInt(maxTemperature))
-    }
-
-    setFilteredStars(result)
-    setShowFilters(false) // Закрываем фильтры после применения
-  }
-
-  const resetFilters = () => {
-    setSearchTerm('')
-    setMinDistance('')
-    setMaxDistance('')
-    setStarType('')
-    setMinMagnitude('')
-    setMaxMagnitude('')
-    setMinTemperature('')
-    setMaxTemperature('')
-    setFilteredStars(stars) // Показываем все звезды
+  // Обработчики для отдельных фильтров
+  const handleFilterChange = (filterName: keyof StarFilters, value: string) => {
+    const newFilters = { ...filters, [filterName]: value }
+    setFilters(newFilters)
   }
 
   const starTypes = Array.from(new Set(stars.map(star => star.StarType))).filter(Boolean)
-
-  // Закрытие фильтра при клике вне области
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest('.filters-dropdown') && !target.closest('.filters-btn')) {
-        setShowFilters(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // Загрузка данных при монтировании
-  useEffect(() => {
-    loadStars()
-  }, [])
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement
     target.src = '/images/default-star.png'
   }
 
-  const getImageUrl = (imageName: string) => {
-    if (!imageName) return '/images/default-star.png'
-    return `http://127.0.0.1:9000/cardsandromeda/${imageName}`
-  }
-
-  // Проверка есть ли активные фильтры
-  const hasActiveFilters = minDistance || maxDistance || starType || minMagnitude || maxMagnitude || minTemperature || maxTemperature
+  // Проверка активных фильтров для индикатора
+  const hasActiveFilters = Object.values(filters).some(value => 
+    value !== undefined && value !== '' && value !== null
+  )
 
   return (
     <>
@@ -129,7 +54,6 @@ const StarsPage: FC = () => {
             <div className="page-title-inner">
               <div className="page-title-container">
                 <h1 className="page-title">Звезды галактики Андромеды</h1>
-                
                 <div className="cart-in-title">
                   <div className="cart-icon empty">
                     <img src="/images/cart.png" alt="Starscart" />
@@ -138,7 +62,7 @@ const StarsPage: FC = () => {
                 </div>
               </div>
               
-              {/* Поиск и фильтры */}
+              {/* Поиск и фильтры с использованием компонентов и пропсов */}
               <div className="search-and-filters">
                 <form 
                   className="search-form-with-filters"
@@ -150,8 +74,8 @@ const StarsPage: FC = () => {
                   <input 
                     type="text" 
                     placeholder="Поиск звезды..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={filters.searchTerm || ''}
+                    onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
                     className="search-input"
                   />
                   
@@ -165,111 +89,73 @@ const StarsPage: FC = () => {
                   </button>
                   
                   <button type="submit" className="search-btn">
-                    Найти
+                    {loading ? 'Загрузка...' : 'Найти'}
                   </button>
                 </form>
 
-                {/* Выпадающее меню фильтров */}
+                {/* Выпадающее меню с компонентами FilterGroup */}
                 {showFilters && (
                   <div className="filters-dropdown">
-                    <div className="filters-header">
-                      <h3>Фильтры поиска</h3>
-                      <button 
-                        className="close-filters"
-                        onClick={() => setShowFilters(false)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                    
                     <div className="filters-content">
-                      {/* Фильтр по расстоянию */}
-                      <div className="filter-group">
-                        <label>Расстояние (св. лет)</label>
-                        <div className="range-inputs">
-                          <input 
-                            type="number" 
-                            placeholder="От"
-                            value={minDistance}
-                            onChange={(e) => setMinDistance(e.target.value)}
-                          />
-                          <span className="range-separator">—</span>
-                          <input 
-                            type="number" 
-                            placeholder="До"
-                            value={maxDistance}
-                            onChange={(e) => setMaxDistance(e.target.value)}
-                          />
-                        </div>
-                      </div>
+                      <FilterGroup
+                        label="Минимальное расстояние"
+                        value={filters.minDistance || ''}
+                        onChange={(value) => handleFilterChange('minDistance', value)}
+                        type="number"
+                        placeholder="От"
+                      />
+                      
+                      <FilterGroup
+                        label="Максимальное расстояние"
+                        value={filters.maxDistance || ''}
+                        onChange={(value) => handleFilterChange('maxDistance', value)}
+                        type="number"
+                        placeholder="До"
+                      />
 
-                      {/* Фильтр по типу звезды */}
-                      <div className="filter-group">
-                        <label>Тип звезды</label>
-                        <select 
-                          value={starType}
-                          onChange={(e) => setStarType(e.target.value)}
-                        >
-                          <option value="">Все типы</option>
-                          {starTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                          ))}
-                        </select>
-                      </div>
+                      <FilterGroup
+                        label="Тип звезды"
+                        value={filters.starType || ''}
+                        onChange={(value) => handleFilterChange('starType', value)}
+                        type="select"
+                        options={starTypes}
+                      />
 
-                      {/* Фильтр по светимости */}
-                      <div className="filter-group">
-                        <label>Светимость</label>
-                        <div className="range-inputs">
-                          <input 
-                            type="number" 
-                            placeholder="От"
-                            value={minMagnitude}
-                            onChange={(e) => setMinMagnitude(e.target.value)}
-                          />
-                          <span className="range-separator">—</span>
-                          <input 
-                            type="number" 
-                            placeholder="До"
-                            value={maxMagnitude}
-                            onChange={(e) => setMaxMagnitude(e.target.value)}
-                          />
-                        </div>
-                      </div>
+                      <FilterGroup
+                        label="Минимальная светимость"
+                        value={filters.minMagnitude || ''}
+                        onChange={(value) => handleFilterChange('minMagnitude', value)}
+                        type="number"
+                        placeholder="От"
+                      />
 
-                      {/* Фильтр по температуре */}
-                      <div className="filter-group">
-                        <label>Температура (K)</label>
-                        <div className="range-inputs">
-                          <input 
-                            type="number" 
-                            placeholder="От"
-                            value={minTemperature}
-                            onChange={(e) => setMinTemperature(e.target.value)}
-                          />
-                          <span className="range-separator">—</span>
-                          <input 
-                            type="number" 
-                            placeholder="До"
-                            value={maxTemperature}
-                            onChange={(e) => setMaxTemperature(e.target.value)}
-                          />
-                        </div>
-                      </div>
+                      <FilterGroup
+                        label="Максимальная светимость"
+                        value={filters.maxMagnitude || ''}
+                        onChange={(value) => handleFilterChange('maxMagnitude', value)}
+                        type="number"
+                        placeholder="До"
+                      />
                     </div>
 
                     <div className="filters-actions">
                       <button 
                         type="button"
                         className="clear-filters-btn"
-                        onClick={resetFilters}
+                        onClick={() => {
+                          resetFilters()
+                          setShowFilters(false)
+                        }}
                       >
-                        Очистить
+                        Очистить фильтры
                       </button>
                       <button 
                         type="button"
                         className="apply-filters-btn"
-                        onClick={applyFilters}
+                        onClick={() => {
+                          applyFilters()
+                          setShowFilters(false)
+                        }}
                       >
                         Применить фильтры
                       </button>
@@ -278,31 +164,29 @@ const StarsPage: FC = () => {
                 )}
               </div>
 
-              {/* Счетчик результатов */}
               <div className="results-count">
-                Найдено звезд: {filteredStars.length}
+                Найдено звезд: {stars.length}
+                {loading && ' (загрузка...)'}
               </div>
             </div>
           </div>
 
+          {/* Отображение звезд */}
           <section className="stars-grid">
-            {filteredStars.map(star => (
+            {stars.map(star => (
               <article key={star.ID} className="star-card">
                 <a href={`/stars/${star.ID}`}>
                   <img 
-                    src={getImageUrl(star.ImageName)}
+                    src={star.imageURL}
                     alt={star.Title}
                     onError={handleImageError}
                   />
                   <div className="text-block">
                     <h2>{star.Title}</h2>
                     <p>{star.Distance} св. лет</p>
+                    {/* Тип и светимость убраны по требованию */}
                   </div>
                 </a>
-                
-                <div className="add-star-btn">
-                  <button>+</button>
-                </div>
               </article>
             ))}
           </section>

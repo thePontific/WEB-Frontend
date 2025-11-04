@@ -1,17 +1,35 @@
+/* StarsPage.css - ОБНОВЛЕННАЯ ВЕРСИЯ */
+
+/* ====== ОСНОВНЫЕ СТИЛИ СТРАНИЦЫ ====== */
 .index-page {
   font-family: 'Golos Text', sans-serif;
   background: #f4f4f4;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* ====== основной контент ====== */
+/* Убедитесь, что main расширяется */
 .index-page main {
   padding: 20px;
   padding-top: 40px;
+  min-height: calc(100vh - 200px);
+  
+  /* ДОБАВЬТЕ */
+  height: auto !important;
+  overflow: visible !important;
 }
 
-/* ====== заголовок с корзиной ====== */
+/* Убедитесь, что body имеет скролл */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* ====== ЗАГОЛОВОК С КОРЗИНОЙ ====== */
 .page-title-wrapper {
   display: flex;
   justify-content: center;
@@ -24,8 +42,11 @@
   margin: 0 auto;
   position: relative;
   padding: 0px 0 15px 0;
+  
+  /* ДОБАВЬТЕ */
+  min-height: auto;
+  overflow: visible;
 }
-
 .page-title-container {
   display: flex;
   justify-content: space-between;
@@ -83,32 +104,20 @@
   color: #ffffff;
 }
 
-/* Форма поиска под заголовком */
-.search-form-under-title {
-  width: 400px;
-  margin-top: 15px;
-}
-
-.search-form-under-title input {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  font-family: "Golos Text", sans-serif;
-  font-weight: 400;
-  font-size: 20px;
-  color: #565C65;
-  background: transparent;
-  border: 1px solid #565C65;
-  outline: none;
-}
-
-/* ====== карточки ====== */
+/* ====== КАРТОЧКИ ЗВЕЗД ====== */
 .stars-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 110px;
   justify-content: center;
   margin-top: 25px;
+  min-height: auto;
+  overflow: visible;
+  
+  /* ДОБАВЬТЕ ЭТИ СТРОКИ */
+  align-content: flex-start; /* важно для wrap */
+  width: 100%;
+  max-width: none; /* убедитесь, что нет ограничений */
 }
 
 .star-card {
@@ -136,7 +145,7 @@
   display: block;
 }
 
-/* ТЕКСТ КАРТОЧКИ - ПОЛНЫЙ СБРОС */
+/* ТЕКСТ КАРТОЧКИ */
 .star-card h2,
 .star-card p {
   all: unset;
@@ -207,7 +216,7 @@
   background-color: #b52b27;
 }
 
-/* Контейнер для поиска и фильтров */
+/* ====== ПОИСК И ФИЛЬТРЫ ====== */
 .search-and-filters {
   position: relative;
   margin-top: 15px;
@@ -453,7 +462,16 @@
   margin-top: 15px;
 }
 
-/* Адаптивность */
+/* ====== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ СКРОЛЛА ====== */
+/* Принудительно создаем высоту для скролла */
+.stars-grid::after {
+  content: '';
+  display: block;
+  height: 100px;
+  width: 100%;
+}
+
+/* ====== АДАПТИВНОСТЬ ====== */
 @media (max-width: 768px) {
   .search-form-with-filters {
     flex-direction: column;
@@ -475,5 +493,37 @@
     width: 90%;
     max-width: 400px;
     margin-top: 0;
+  }
+  
+  .page-title {
+    font-size: 50px;
+  }
+  
+  .stars-grid {
+    gap: 60px;
+  }
+  
+  .star-card {
+    width: 350px;
+    height: 525px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 40px;
+  }
+  
+  .star-card {
+    width: 300px;
+    height: 450px;
+  }
+  
+  .text-block h2 {
+    font-size: 30px;
+  }
+  
+  .text-block p {
+    font-size: 16px;
   }
 }
