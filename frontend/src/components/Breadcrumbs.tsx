@@ -1,6 +1,6 @@
 import type { FC } from 'react'
-import { Breadcrumb } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
+import './Breadcrumbs.css'
 
 interface Crumb {
   label: string
@@ -10,12 +10,8 @@ interface Crumb {
 const Breadcrumbs: FC = () => {
   const location = useLocation()
   
-  // Временно для отладки
-  console.log('Breadcrumbs location:', location.pathname)
-  
   const getCrumbs = (): Crumb[] => {
     const paths = location.pathname.split('/').filter(path => path)
-    console.log('Breadcrumbs paths:', paths)
     
     const crumbs: Crumb[] = [{ label: 'Главная', path: '/' }]
     
@@ -35,29 +31,32 @@ const Breadcrumbs: FC = () => {
       }
     })
     
-    console.log('Breadcrumbs crumbs:', crumbs)
     return crumbs
   }
 
   const crumbs = getCrumbs()
 
   return (
-    <Breadcrumb className="mb-3" style={{ fontSize: '16px' , paddingTop: '10px'}}>
+    <nav className="custom-breadcrumbs">
       {crumbs.map((crumb, index) => (
-        <Breadcrumb.Item 
-          key={index}
-          active={index === crumbs.length - 1}
-          linkAs={crumb.path ? Link : undefined}
-          linkProps={crumb.path ? { to: crumb.path } : undefined}
-          style={{ 
-            fontFamily: 'Golos Text, sans-serif',
-            fontSize: '16px'
-          }}
-        >
-          {crumb.label}
-        </Breadcrumb.Item>
+        <div key={index} className="breadcrumb-item">
+          {crumb.path ? (
+            <Link to={crumb.path} className="breadcrumb-link">
+              {crumb.label}
+            </Link>
+          ) : (
+            <span className="breadcrumb-current">
+              {crumb.label}
+            </span>
+          )}
+          
+          {/* Разделитель ТОЛЬКО если есть следующий элемент */}
+          {index < crumbs.length - 1 && crumbs[index + 1] && (
+            <span className="breadcrumb-separator"></span>
+          )}
+        </div>
       ))}
-    </Breadcrumb>
+    </nav>
   )
 }
 

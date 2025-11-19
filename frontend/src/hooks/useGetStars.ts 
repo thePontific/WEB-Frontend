@@ -1,0 +1,26 @@
+import { useEffect } from 'react'
+import { useAppDispatch } from '../store/hooks'
+import { setStars, setLoading, setError } from '../features/stars/starsSlice'
+import { starsApi } from '../modules/api'
+
+export const useGetStars = (): void => {
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    const fetchStars = async (): Promise<void> => {
+      dispatch(setLoading(true))
+      try {
+        const data = await starsApi.getStars({})
+        dispatch(setStars(data))
+        dispatch(setError(null))
+      } catch (err) {
+        dispatch(setError('Ошибка загрузки звезд'))
+        console.error('Ошибка загрузки звезд:', err)
+      } finally {
+        dispatch(setLoading(false))
+      }
+    }
+
+    fetchStars()
+  }, [dispatch])
+}

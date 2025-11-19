@@ -85,7 +85,7 @@ export const starsApi = {
 
 // Функция для генерации URL изображения
 function generateImageURL(imageName: string): string {
-  if (!imageName) return '/images/default-star.png';
+  if (!imageName) return 'images/default-star.png';
   
   let fileName = imageName;
   if (fileName && !fileName.includes('.')) {

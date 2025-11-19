@@ -1,22 +1,37 @@
-// hooks/useImageLoader.ts
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
-export const useImageLoader = (defaultImage: string = '/images/default-star.png') => {
+// Правильный путь с учетом base URL
+const getDefaultImagePath = () => {
+  const base = import.meta.env.BASE_URL || ''
+  return `${base}/images/default-star.png`
+}
+
+export const useImageLoader = (defaultImage: string = getDefaultImagePath()) => {
   const [imageError, setImageError] = useState(false)
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const target = e.target as HTMLImageElement
-    target.src = defaultImage
+  const handleImageError = useCallback((e?: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log('🔄 Image error, switching to default:', defaultImage)
     setImageError(true)
-  }
+    if (e && !(e.target as HTMLImageElement).src.includes('default-star.png')) {
+      (e.target as HTMLImageElement).src = defaultImage
+    }
+  }, [defaultImage])
 
-  const resetImageError = () => {
+  const resetImageError = useCallback(() => {
     setImageError(false)
-  }
+  }, [])
+
+  const getImageSrc = useCallback((originalSrc: string | undefined) => {
+    if (imageError || !originalSrc) {
+      return defaultImage
+    }
+    return originalSrc
+  }, [imageError, defaultImage])
 
   return {
     imageError,
     handleImageError,
-    resetImageError
+    resetImageError,
+    getImageSrc
   }
 }

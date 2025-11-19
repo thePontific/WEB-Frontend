@@ -6,7 +6,7 @@ import { FilterGroup } from '../components/FilterGroup'
 import { useStarsFilter } from '../hooks/useStarsFilter'
 import type { StarFilters } from '../types'
 import './StarsPage.css'
-
+import { Link } from 'react-router-dom'
 const StarsPage: FC = () => {
   const { 
     stars, 
@@ -41,7 +41,7 @@ const StarsPage: FC = () => {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement
-    target.src = '/images/default-star.png'
+    target.src = 'images/default-star.png'
   }
 
   const hasActiveFilters = Object.values(filters).some(value => 
@@ -59,7 +59,7 @@ const StarsPage: FC = () => {
                 <h1 className="page-title">Звезды галактики Андромеды</h1>
                 <div className="cart-in-title">
                   <div className="cart-icon empty">
-                    <img src="/images/cart.png" alt="Starscart" />
+                    <img src="images/cart.png" alt="Starscart" />
                     <span className="cart-count">0</span>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ const StarsPage: FC = () => {
           <section className="stars-grid">
             {stars.map(star => (
               <article key={star.ID} className="star-card">
-                <a href={`/stars/${star.ID}`}>
+                <Link to={`/stars/${star.ID}`}>
                   <img 
                     src={star.imageURL}
                     alt={star.Title}
@@ -182,7 +182,7 @@ const StarsPage: FC = () => {
                     <h2>{star.Title}</h2>
                     <p>{star.Distance} св. лет</p>
                   </div>
-                </a>
+                </Link>
               </article>
             ))}
           </section>

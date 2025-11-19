@@ -10,7 +10,7 @@ interface Props {
 const StarCard: FC<Props> = ({ star }) => {
   const imageUrl = star.ImageName 
     ? `http://127.0.0.1:9000/cardsandromeda/${star.ImageName}`
-    : '/images/default-star.jpg'
+    : 'images/default-star.jpg'
 
   return (
     <Card className="star-card" style={{ 
@@ -31,7 +31,7 @@ const StarCard: FC<Props> = ({ star }) => {
             objectFit: 'cover' 
           }}
           onError={(e) => {
-            e.currentTarget.src = '/images/default-star.jpg'
+            e.currentTarget.src = 'images/default-star.jpg'
           }}
         />
         

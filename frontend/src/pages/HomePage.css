@@ -4,105 +4,160 @@
   overflow: hidden;
 }
 
-/* Фон с небольшим отступом сверху */
-.background-layer {
-  position: absolute;
-  top: 60px; /* ← ОТСТУП СВЕРХУ */
+/* ФОН */
+.hero-background {
+  position: fixed; /* Меняем на fixed */
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('/images/background.jpg') no-repeat center center;
+  background: 
+    url('/WEB-Frontend/images/background.jpg') no-repeat center center;
   background-size: cover;
   z-index: 1;
 }
 
-/* Контент поверх фона */
-.content-layer {
+/* ОСНОВНОЙ КОНТЕНТ */
+.main-content {
   position: relative;
-  z-index: 2;
+  z-index: 10; /* Увеличиваем z-index */
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.main-content {
-  text-align: center;
-  margin-top: -80px;
-}
-
-.main-content .lead {
-  font-size: 1.1rem;
-  max-width: 500px;
-  margin: 0 auto 2rem auto;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.explore-btn {
-  border-width: 2px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-shadow: none;
-  padding: 0.5rem 2rem;
-}
-
-/* Нижние статистики */
-.bottom-stats {
-  position: absolute;
-  bottom: 100px;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  text-align: center;
-}
-
-.stats-row {
+.content-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 40px;
+  gap: 60px;
+  height: 100%;
+}
+
+/* ТЕКСТОВАЯ СЕКЦИЯ */
+.text-section {
+  text-align: center;
+  z-index: 20;
+}
+
+.hero-title {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  color: white;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+  line-height: 1.1;
+}
+
+.hero-description {
+  font-family: 'Golos Text', sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* СТАТИСТИКИ */
+.stats-section {
+  width: 100%;
+  z-index: 15;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1000px;
   margin: 0 auto;
-  width: fit-content;
 }
 
 .stat-item {
   text-align: center;
   color: white;
+  padding: 15px 10px;
 }
 
-.golos-regular {
+.stat-label {
   font-family: 'Golos Text', sans-serif;
   font-weight: 400;
-  font-size: 0.9rem;
-  margin-bottom: 5px;
+  font-size: clamp(0.75rem, 1.3vw, 0.85rem);
+  margin-bottom: 8px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
 }
 
-.golos-bold {
+.stat-value {
   font-family: 'Golos Text', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  margin-top: 8px;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .divider-line {
-  width: 40px;
+  width: 50px;
   height: 2px;
-  background: white;
-  margin: 8px auto;
-  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.7);
+  margin: 6px auto;
 }
 
-/* Адаптивность */
+/* АДАПТИВНОСТЬ */
+@media (max-width: 1024px) {
+  .content-wrapper {
+    gap: 50px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    max-width: 600px;
+  }
+}
+
 @media (max-width: 768px) {
-  .stats-row {
-    flex-wrap: wrap;
-    gap: 20px;
+  .content-wrapper {
+    gap: 40px;
+    padding: 0 15px;
   }
   
-  .main-content {
-    margin-top: -40px;
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 400px;
   }
   
-  .background-layer {
-    top: 5px; /* Меньший отступ на мобильных */
+  .hero-title {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 545px) {
+  .content-wrapper {
+    gap: 30px;
+    padding: 0 10px;
+  }
+  
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 2.5rem);
+  }
+  
+  .hero-description {
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+    max-width: 400px;
+  }
+  
+  .divider-line {
+    width: 40px;
   }
 }

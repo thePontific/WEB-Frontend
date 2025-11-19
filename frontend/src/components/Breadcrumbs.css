@@ -1,0 +1,49 @@
+/* Breadcrumbs.css */
+.custom-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 0 0 220px;
+  font-family: 'Golos Text', sans-serif;
+  font-size: 16px;
+  background-color: #000000;
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb-link {
+  color: white !important;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.breadcrumb-link:hover {
+  opacity: 0.8;
+  color: white !important;
+  text-decoration: none;
+}
+
+.breadcrumb-current {
+  color: #cccccc;
+}
+
+.breadcrumb-separator {
+  color: white;
+  margin-left: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .custom-breadcrumbs {
+    padding-left: 20px;
+    font-size: 14px;
+  }
+}

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { starsApi } from '../modules/api'
 import type { StarWithImage } from '../modules/api'
 import type { StarFilters } from '../types'
+import { STARS_MOCK } from '../modules/mockData'
 
 interface UseStarsFilterReturn {
   stars: StarWithImage[]
@@ -11,14 +12,15 @@ interface UseStarsFilterReturn {
   setFilters: (filters: StarFilters) => void
   applyFilters: () => void
   resetFilters: () => void
+  usingMockData: boolean
 }
 
-// hooks/useStarsFilter.ts
 export const useStarsFilter = (): UseStarsFilterReturn => {
   const [stars, setStars] = useState<StarWithImage[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<StarFilters>({})
-  const [initialLoad, setInitialLoad] = useState(false) // ← добавляем флаг начальной загрузки
+  const [initialLoad, setInitialLoad] = useState(false)
+  const [usingMockData, setUsingMockData] = useState(false)
 
   const loadStarsWithFilters = useCallback(async (currentFilters: StarFilters) => {
     console.log('🚀 Starting fetch with filters:', currentFilters)
@@ -26,18 +28,24 @@ export const useStarsFilter = (): UseStarsFilterReturn => {
     setLoading(true)
     try {
       const data = await starsApi.getStars(currentFilters)
-      console.log('✅ Fetch successful, stars:', data.length)
+      console.log('✅ Fetch successful from BACKEND, stars:', data.length)
       setStars(data)
+      setUsingMockData(false)
     } catch (error) {
-      console.log('❌ Fetch failed, using mock data')
+      console.log('❌ Fetch failed, using MOCK DATA')
       console.error('Ошибка загрузки звезд:', error)
+      
+      // Используем мок-данные напрямую из API (они уже отфильтрованы там)
+      const mockData = await starsApi.getStars(currentFilters)
+      console.log('✅ Using MOCK data, stars:', mockData.length)
+      setStars(mockData)
+      setUsingMockData(true)
     } finally {
       setLoading(false)
-      setInitialLoad(true) // ← отмечаем что начальная загрузка выполнена
+      setInitialLoad(true)
     }
   }, [])
 
-  // Добавляем начальную загрузку при монтировании
   useEffect(() => {
     if (!initialLoad) {
       console.log('🔄 Initial load - loading all stars')
@@ -53,7 +61,7 @@ export const useStarsFilter = (): UseStarsFilterReturn => {
   const resetFilters = () => {
     console.log('🔄 Resetting filters')
     setFilters({})
-    loadStarsWithFilters({}) // ← автоматически загружаем все данные при сбросе
+    loadStarsWithFilters({})
   }
 
   return {
@@ -62,6 +70,7 @@ export const useStarsFilter = (): UseStarsFilterReturn => {
     filters,
     setFilters,
     applyFilters,
-    resetFilters
+    resetFilters,
+    usingMockData
   }
 }

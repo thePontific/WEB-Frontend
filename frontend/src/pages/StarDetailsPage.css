@@ -3,21 +3,20 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
 }
 
 /* ====== основной контент ====== */
 main {
     padding: 0;
     position: relative;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
 }
 
 /* ====== полноэкранное изображение с затемнением ====== */
 .star-hero {
     width: 100%;
-    height: 100%;
+    min-height: 100vh;
     overflow: hidden;
     position: relative;
 }
@@ -26,134 +25,242 @@ main {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
     filter: brightness(50%);
 }
 
 /* ====== контейнер для контента поверх изображения ====== */
 .star-content-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: white;
+    position: relative;
     z-index: 2;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Меняем на flex-start */
+    padding: 300px 30px 60px; /* Уменьшаем верхний отступ, увеличиваем нижний */
 }
 
 /* ====== информация о звезде ====== */
 .star-info {
-    position: absolute;
-    top: 229px;
-    left: 250px;
     max-width: 800px;
+    margin: 0px auto 0;
+    text-align: center;
 }
 
 .star-title {
     font-family: "Golos Text", sans-serif;
     font-weight: 700;
-    font-size: 96px;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
     line-height: 1.1;
     color: #fff;
-    margin: 0 0 24px 0;
+    margin: 0 0 1.5rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .star-description {
     font-family: "Golos Text", sans-serif;
     font-weight: 400;
-    font-size: 20px;
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
     line-height: 1.5;
-    color: #fff;
-    margin: 0;
-    width: 600px;
-    /* Убрано абсолютное позиционирование, теперь следует за заголовком */
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 auto;
+    max-width: 600px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* ====== детали звезды ====== */
+.details-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+    margin: 300px 0 0 0; /* 600px от верха, 0 по бокам */
+    padding: 0 20px;
+    flex-wrap: wrap;
+}
+
 .detail-item {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    min-width: 130px;
 }
 
 .detail-label {
     font-family: "Golos Text", sans-serif;
     font-weight: 400;
-    font-size: 20px;
-    color: #fff;
+    font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 8px;
-    letter-spacing: 0.30em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .detail-value {
     font-family: "Golos Text", sans-serif;
     font-weight: 700;
-    font-size: 24px;
+    font-size: clamp(1rem, 2.2vw, 1.3rem);
     color: #fff;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .divider {
-    width: 353px;
+    width: clamp(70px, 15vw, 100px);
     height: 2px;
-    background-color: rgba(255, 255, 255, 0.3);
-    margin: 8px 0 12px 0;
+    background-color: rgba(255, 255, 255, 0.4);
+    margin: 8px 0 10px 0;
 }
 
-/* Позиционирование отдельных элементов */
-.distance-block {
-    position: absolute;
-    left: 250px;
-    bottom: 174px;
+/* АДАПТИВНОСТЬ */
+@media (max-width: 1024px) {
+    .star-content-overlay {
+        padding: 150px 20px 50px; /* Уменьшил с 300px до 150px */
+    }
+    
+    .details-container {
+        margin: 150px 0 0 0; /* Уменьшил с 300px до 150px */
+    }
+    
+    .star-info {
+        margin-bottom: 40px;
+    }
 }
 
-.magnitude-block {
-    position: absolute;
-    left: 803px;
-    bottom: 174px;
+@media (max-width: 768px) {
+    .star-content-overlay {
+        padding: 100px 15px 40px; /* Уменьшил до 100px */
+    }
+    
+    .details-container {
+        margin: 80px 0 0 0; /* Уменьшил до 80px */
+    }
+    
+    .star-info {
+        margin-bottom: 30px;
+    }
+    
+    .details-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .detail-item {
+        flex: 0 0 calc(50% - 20px);
+        min-width: 140px;
+    }
 }
 
-.discovery-block {
-    position: absolute;
-    left: 1356px;
-    bottom: 174px;
+@media (max-width: 545px) {
+    .star-content-overlay {
+        padding: 80px 10px 30px; /* Уменьшил до 80px */
+    }
+    
+    .details-container {
+        margin: 50px 0 0 0; /* Уменьшил до 50px - теперь детали близко к названию */
+    }
+    
+    .star-info {
+        margin-bottom: 25px;
+    }
+    
+    .details-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .detail-item {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .divider {
+        width: 80px;
+    }
 }
 
-/* Стили для состояний загрузки и ошибки */
-.loading-container,
-.error-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    text-align: center;
-    z-index: 3;
+/* Для очень маленьких экранов */
+@media (max-width: 375px) {
+    .star-content-overlay {
+        padding: 60px 8px 20px; /* Еще меньше */
+    }
+    
+    .details-container {
+        margin: 30px 0 0 0; /* Еще ближе к названию */
+    }
+    
+    .star-title {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .star-description {
+        font-size: 0.9rem;
+    }
 }
 
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 16px;
+/* Хлебные крошки - серые */
+.breadcrumbs {
+    background: rgba(30, 30, 40, 0.7);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(100, 100, 120, 0.2);
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.error-container h2 {
-    font-family: "Golos Text", sans-serif;
-    font-size: 24px;
-    margin-bottom: 8px;
+.breadcrumbs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+    color: #888;
 }
 
-.error-container p {
-    font-family: "Golos Text", sans-serif;
-    font-size: 16px;
-    opacity: 0.8;
+/* Остальные стили хлебных крошек без изменений */
+
+.breadcrumb-link {
+    color: #777;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-weight: 400;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.breadcrumb-link:hover {
+    color: #aaa;
+    text-decoration: none;
+}
+
+.breadcrumb-separator {
+    color: #555;
+    font-size: 0.7rem;
+}
+
+.breadcrumb-current {
+    color: #999;
+    font-weight: 400;
+}
+
+/* Адаптивность хлебных крошек */
+@media (max-width: 545px) {
+    .breadcrumbs {
+        padding: 8px 0;
+    }
+    
+    .breadcrumbs-container {
+        padding: 0 10px;
+        gap: 4px;
+    }
 }
