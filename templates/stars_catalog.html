@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Звёзды галактики Андромеды</title>
+    <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles/header.css">
+    <link rel="stylesheet" href="/static/styles/starts_catalog_style.css">
+</head>
+<body class="index-page">
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <a href="/Andromeda" class="logo">
+                <img src="http://127.0.0.1:9000/cardsandromeda/image.png" alt="home">
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-title-wrapper">
+            <div class="page-title-inner">
+                <div class="page-title-container">
+                    <h1 class="page-title">Звезды галактики Андромеды</h1>
+                        <div class="cart-in-title">
+                            {{if gt .cartItemsCount 0}}
+                            <!-- Корзина есть — кликабельна -->
+                            <a href="/Andromeda/starscart/{{.cartID}}" class="cart-icon" style="position: relative;">
+                                <img src="http://127.0.0.1:9000/cardsandromeda/cart.png" alt="Starscart">
+                                <span class="cart-count">{{.cartItemsCount}}</span>
+                            </a>
+                            {{else}}
+                            <!-- Корзина пустая — не кликабельна -->
+                            <div class="cart-icon empty" style="position: relative; cursor: not-allowed;">
+                                <img src="http://127.0.0.1:9000/cardsandromeda/cart.png" alt="Starscart">
+                                <span class="cart-count">0</span>
+                            </div>
+                            {{end}}
+                        </div>
+
+                </div>
+                    <form action="/Andromeda" method="GET" class="search-form-under-title">
+                        <input type="text" name="starname" placeholder="Поиск звезды..." value="{{ .starname }}">
+                    </form>
+
+            </div>
+        </div>
+
+        <section class="stars-grid">
+            {{ range .stars }}
+            <article class="star-card">
+                <a href="/Andromeda/star/{{ .ID }}">
+
+                    
+                    <img src="{{$.minioService.GetImageURL .ImageName}}" alt="{{ .Title }}">
+                    <h2>{{ .Title }}</h2>
+                    <p>{{ .Distance }} св. лет</p>
+                </a>
+                <!-- Кнопка добавления в корзину -->
+                <form method="POST" action="/cart/add" class="add-star-btn">
+                    <input type="hidden" name="cart_id" value="{{ $.cartID }}">
+                    <input type="hidden" name="star_id" value="{{ .ID }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit">+</button>
+                </form>
+
+            
+            </article>
+            {{ end }}
+        </section>
+    </main>
+</body>
+</html>

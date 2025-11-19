@@ -1,0 +1,196 @@
+/* Импорты должны быть в начале */
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
+
+/* ИСПРАВЬТЕ ЭТО В index.css */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  /* УБЕРИТЕ overflow: hidden */
+  overflow-x: hidden; /* можно оставить */
+  overflow-y: auto; /* ДОБАВЬТЕ это */
+}
+
+body {
+  font-family: 'Golos Text', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: black;
+  /* УБЕРИТЕ overflow: hidden отсюда */
+  min-height: 100vh; /* ДОБАВЬТЕ */
+}
+
+/* Фон БЕЗ затемнения */
+.hero-background {
+  background: url('/images/background.jpg') center/cover no-repeat;
+  height: calc(100vh - 76px);
+  margin-top: 76px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Надписи внизу в ряд */
+.bottom-stats {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 80px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 200px;
+}
+
+.golos-regular {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 8px;
+}
+
+.golos-bold {
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: white;
+  margin: 0;
+}
+
+.divider-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 12px 0;
+}
+
+/* Стили для хедера */
+.custom-navbar {
+  background-color: #000000 !important;
+  border: none;
+  padding: 1.5rem 0;
+  height: 80px;
+}
+
+.navbar-brand-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Ссылки навигации */
+.nav-link {
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: white !important;
+}
+
+/* Стили для хлебных крошек */
+.breadcrumb {
+  background: transparent !important;
+  padding: 0.5rem 0 !important;
+  margin-bottom: 1rem !important;
+}
+
+.breadcrumb-item a {
+  color: rgba(255, 255, 255, 0.7) !important;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: white !important;
+}
+
+.breadcrumb-item.active {
+  color: white !important;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  color: rgba(255, 255, 255, 0.5) !important;
+  content: ">" !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .custom-navbar {
+    padding: 1rem 0;
+    height: 70px;
+  }
+  
+  .navbar-brand-center img {
+    height: 30px !important;
+  }
+  
+  .nav-link {
+    font-size: 0.9rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .hero-background {
+    height: calc(100vh - 56px);
+    margin-top: 56px;
+  }
+  
+  .stats-row {
+    gap: 40px;
+  }
+  
+  .stat-item {
+    min-width: 150px;
+  }
+  
+  .golos-regular {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+  }
+  
+  .golos-bold {
+    font-size: 20px;
+  }
+  
+  .display-2 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-link {
+    font-size: 0.85rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  .navbar-brand-center img {
+    height: 25px !important;
+  }
+  
+  .stats-row {
+    gap: 20px;
+  }
+  
+  .stat-item {
+    min-width: 120px;
+  }
+}
