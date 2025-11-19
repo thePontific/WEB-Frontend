@@ -1,6 +1,6 @@
 // pages/StarsPage.tsx
 import type { FC } from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import { FilterGroup } from '../components/FilterGroup'
 import { useStarsFilter } from '../hooks/useStarsFilter'
@@ -8,7 +8,6 @@ import type { StarFilters } from '../types'
 import './StarsPage.css'
 
 const StarsPage: FC = () => {
-  // Использование пользовательского хука (5.1 Хук состояния)
   const { 
     stars, 
     loading, 
@@ -17,20 +16,25 @@ const StarsPage: FC = () => {
     applyFilters, 
     resetFilters 
   } = useStarsFilter()
-   useEffect(() => {
-    console.log('🎯 Filters changed:', filters)
-  }, [filters])
 
-  useEffect(() => {
-    console.log('🎯 Stars loaded:', stars.length)
-  }, [stars])
-  // Состояние для показа/скрытия фильтров
   const [showFilters, setShowFilters] = useState(false)
 
-  // Обработчики для отдельных фильтров
   const handleFilterChange = (filterName: keyof StarFilters, value: string) => {
     const newFilters = { ...filters, [filterName]: value }
     setFilters(newFilters)
+  }
+
+  const handleSearch = () => {
+    console.log('🔍 Performing search with filters:', filters)
+    applyFilters()
+  }
+
+  // Обработчик очистки фильтров
+  const handleClearFilters = () => {
+    console.log('🗑️ Clearing all filters')
+    resetFilters()
+    applyFilters() // ← автоматически применяем пустые фильтры
+    setShowFilters(false)
   }
 
   const starTypes = Array.from(new Set(stars.map(star => star.StarType))).filter(Boolean)
@@ -40,7 +44,6 @@ const StarsPage: FC = () => {
     target.src = '/images/default-star.png'
   }
 
-  // Проверка активных фильтров для индикатора
   const hasActiveFilters = Object.values(filters).some(value => 
     value !== undefined && value !== '' && value !== null
   )
@@ -62,13 +65,12 @@ const StarsPage: FC = () => {
                 </div>
               </div>
               
-              {/* Поиск и фильтры с использованием компонентов и пропсов */}
               <div className="search-and-filters">
                 <form 
                   className="search-form-with-filters"
                   onSubmit={(e) => {
                     e.preventDefault()
-                    applyFilters()
+                    handleSearch()
                   }}
                 >
                   <input 
@@ -93,7 +95,6 @@ const StarsPage: FC = () => {
                   </button>
                 </form>
 
-                {/* Выпадающее меню с компонентами FilterGroup */}
                 {showFilters && (
                   <div className="filters-dropdown">
                     <div className="filters-content">
@@ -142,10 +143,7 @@ const StarsPage: FC = () => {
                       <button 
                         type="button"
                         className="clear-filters-btn"
-                        onClick={() => {
-                          resetFilters()
-                          setShowFilters(false)
-                        }}
+                        onClick={handleClearFilters} // ← используем новый обработчик
                       >
                         Очистить фильтры
                       </button>
@@ -171,7 +169,6 @@ const StarsPage: FC = () => {
             </div>
           </div>
 
-          {/* Отображение звезд */}
           <section className="stars-grid">
             {stars.map(star => (
               <article key={star.ID} className="star-card">
@@ -184,7 +181,6 @@ const StarsPage: FC = () => {
                   <div className="text-block">
                     <h2>{star.Title}</h2>
                     <p>{star.Distance} св. лет</p>
-                    {/* Тип и светимость убраны по требованию */}
                   </div>
                 </a>
               </article>

@@ -486,6 +486,34 @@ paths:
         in: query
         name: title
         type: string
+      - description: Минимальное расстояние
+        in: query
+        name: distance_min
+        type: number
+      - description: Максимальное расстояние
+        in: query
+        name: distance_max
+        type: number
+      - description: Тип звезды
+        in: query
+        name: star_type
+        type: string
+      - description: Минимальная светимость
+        in: query
+        name: magnitude_min
+        type: number
+      - description: Максимальная светимость
+        in: query
+        name: magnitude_max
+        type: number
+      - description: Минимальная температура
+        in: query
+        name: temperature_min
+        type: number
+      - description: Максимальная температура
+        in: query
+        name: temperature_max
+        type: number
       produces:
       - application/json
       responses:
@@ -503,7 +531,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Получить список звёзд
+      summary: Получить список звёзд с фильтрацией
       tags:
       - Stars
     post:

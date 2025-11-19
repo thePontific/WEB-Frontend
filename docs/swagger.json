@@ -512,12 +512,54 @@
                 "tags": [
                     "Stars"
                 ],
-                "summary": "Получить список звёзд",
+                "summary": "Получить список звёзд с фильтрацией",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Поиск по названию",
                         "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Минимальное расстояние",
+                        "name": "distance_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальное расстояние",
+                        "name": "distance_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Тип звезды",
+                        "name": "star_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Минимальная светимость",
+                        "name": "magnitude_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальная светимость",
+                        "name": "magnitude_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Минимальная температура",
+                        "name": "temperature_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальная температура",
+                        "name": "temperature_max",
                         "in": "query"
                     }
                 ],
