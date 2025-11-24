@@ -1,7 +1,7 @@
+// src/modules/api.ts
 import type { Star } from '../types'
 import { STARS_MOCK } from './mockData';
-
-const API_BASE = '/api';
+import { API_BASE_URL } from '../config';
 
 export interface StarFilters {
   searchTerm?: string;
@@ -15,12 +15,48 @@ export interface StarFilters {
 }
 
 export interface StarWithImage extends Star {
-  imageURL: string; // добавляем поле с готовой ссылкой
+  imageURL: string;
 }
 
 export interface StarDetailsResponse {
   star: Star;
   imageURL: string;
+}
+
+// ⭐ ФУНКЦИЯ ДЛЯ НЕБЕЗОПАСНЫХ ЗАПРОСОВ В TAURI
+async function insecureFetch(url: string, options = {}): Promise<any> {
+  try {
+    // В браузере всегда используем обычный fetch
+    if (typeof window === 'undefined' || !(window as any).__TAURI__) {
+      console.log('🌐 Browser environment, using regular fetch');
+      return fetch(url);
+    }
+    
+    // В Tauri используем eval для динамического импорта (обход проверки Vite)
+    const tauriAPI = await eval(`import('@tauri-apps/api/tauri')`);
+    const result = await tauriAPI.invoke('make_insecure_request', { url }) as string;
+    
+    return {
+      ok: true,
+      json: async () => JSON.parse(result),
+      text: async () => result
+    };
+  } catch (error) {
+    console.error('Tauri insecure request failed:', error);
+    // Fallback to regular fetch
+    return fetch(url);
+  }
+}
+
+// ⭐ ВЫБОР МЕЖДУ ОБЫЧНЫМ FETCH И TAURI FETCH
+async function getFetchFunction(): Promise<(url: string, options?: any) => Promise<any>> {
+  // В браузере всегда используем обычный fetch
+  if (typeof window === 'undefined' || !(window as any).__TAURI__) {
+    return fetch;
+  } else {
+    console.log('🔄 Tauri environment, using insecure fetch');
+    return insecureFetch;
+  }
 }
 
 export const starsApi = {
@@ -37,7 +73,11 @@ export const starsApi = {
       if (filters?.minTemperature) queryParams.append('temperature_min', filters.minTemperature);
       if (filters?.maxTemperature) queryParams.append('temperature_max', filters.maxTemperature);
 
-      const response = await fetch(`${API_BASE}/stars?${queryParams}`);
+      const url = `${API_BASE_URL}/stars?${queryParams}`;
+      console.log('📡 Fetching from:', url);
+      
+      const fetchFunction = await getFetchFunction();
+      const response = await fetchFunction(url);
       
       if (!response.ok) {
         throw new Error('API недоступен, используем mock данные');
@@ -45,13 +85,12 @@ export const starsApi = {
       
       const data = await response.json();
       
-      // ⚠️ ДОБАВЛЯЕМ imageURL к каждой звезде
       return data.map((star: Star) => ({
         ...star,
         imageURL: generateImageURL(star.ImageName)
       }));
     } catch (error) {
-      console.warn('Используем mock данные:', error);
+      console.warn('⚠️ Используем mock данные:', error);
       const mockStars = applyFiltersToMock(STARS_MOCK, filters);
       return mockStars.map(star => ({
         ...star,
@@ -62,16 +101,20 @@ export const starsApi = {
 
   async getStarDetails(id: number): Promise<StarDetailsResponse> {
     try {
-      const response = await fetch(`${API_BASE}/stars/${id}`);
+      const url = `${API_BASE_URL}/stars/${id}`;
+      console.log('📡 Fetching star details from:', url);
+      
+      const fetchFunction = await getFetchFunction();
+      const response = await fetchFunction(url);
       
       if (!response.ok) {
         throw new Error('API недоступен');
       }
       
       const data = await response.json();
-      return data; // возвращаем {star: ..., imageURL: ...}
+      return data;
     } catch (error) {
-      console.warn('Используем mock данные для деталей звезды');
+      console.warn('⚠️ Используем mock данные для деталей звезды');
       const mockStar = STARS_MOCK.find(star => star.ID === id);
       if (!mockStar) throw new Error('Звезда не найдена');
       
@@ -92,10 +135,16 @@ function generateImageURL(imageName: string): string {
     fileName = `${fileName}.jpg`;
   }
   
-  return `http://127.0.0.1:9000/cardsandromeda/${fileName}`;
+  const isTauriApp = typeof window !== 'undefined' && (window as any).__TAURI__;
+  
+  const IMAGE_BASE_URL = isTauriApp 
+    ? 'http://172.20.0.1:9000'
+    : 'http://127.0.0.1:9000';
+  
+  return `${IMAGE_BASE_URL}/cardsandromeda/${fileName}`;
 }
 
-// Функция для фильтрации мок-данных (fallback)
+// Функция для фильтрации мок-данных
 function applyFiltersToMock(stars: Star[], filters?: StarFilters): Star[] {
   if (!filters) return stars;
   

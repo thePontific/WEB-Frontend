@@ -4,6 +4,9 @@ import HomePage from "./pages/HomePage"
 import StarsPage from "./pages/StarsPage"
 import StarDetailsPage from "./pages/StarDetailsPage"
 
+import StarCartPage from './pages/StarCartPage'
+
+
 function App() {
   return (
     <BrowserRouter basename="/WEB-Frontend">
@@ -11,6 +14,7 @@ function App() {
         <Route path="/" index element={<HomePage />} />
         <Route path="/stars" element={<StarsPage />} />
         <Route path="/stars/:id" element={<StarDetailsPage />} />
+        <Route path="/star-cart" element={<StarCartPage />} />
       </Routes>
     </BrowserRouter>
   )

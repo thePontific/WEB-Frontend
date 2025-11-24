@@ -3,7 +3,8 @@ import { useAppSelector } from '../store/hooks'
 import './StarCartIcon.css'
 
 export const StarCartIcon: FC = () => {
-  const totalCount = useAppSelector((state) => state.starCart.totalCount)
+  // ИСПРАВЬ НА наш новый путь в Redux state
+  const totalCount = useAppSelector((state) => state.ourData.SumShoppingCart)
 
   return (
     <div className="cart-icon">

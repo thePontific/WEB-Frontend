@@ -537,23 +537,6 @@
   }
 }
 
-/* ЭКСТРЕННЫЙ ВАРИАНТ - ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ДЛЯ ОЧЕНЬ МАЛЕНЬКИХ ЭКРАНОВ */
-@media (max-width: 400px) {
-  .stars-grid {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding-bottom: 10px;
-    gap: 20px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .star-card {
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-  }
-}
 
 /* ДЛЯ ВЫСОКИХ ЭКРАНОВ - УВЕЛИЧИВАЕМ ЕСЛИ НУЖНО */
 @media (min-height: 1000px) and (min-width: 1200px) {

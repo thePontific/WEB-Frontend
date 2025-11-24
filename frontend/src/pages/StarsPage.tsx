@@ -1,43 +1,91 @@
-// pages/StarsPage.tsx
 import type { FC } from 'react'
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import { FilterGroup } from '../components/FilterGroup'
-import { useStarsFilter } from '../hooks/useStarsFilter'
 import type { StarFilters } from '../types'
 import './StarsPage.css'
 import { Link } from 'react-router-dom'
-const StarsPage: FC = () => {
-  const { 
-    stars, 
-    loading, 
-    filters, 
-    setFilters, 
-    applyFilters, 
-    resetFilters 
-  } = useStarsFilter()
+import { useDispatch } from "react-redux"
+// ИМПОРТЫ ПО МЕТОДИЧКЕ - из dataSlice
+import { setSumAction, useSum, useData } from "../slices/dataSlice"
+import { useGetData } from '../hooks/useGetData' 
+import { setFiltersAction, resetFiltersAction, useFilters } from "../slices/filtersSlice"
+import type { StarWithImage } from '../modules/api'
 
+const StarsPage: FC = () => {
+  useGetData()
+  
+  const dispatch = useDispatch()
+  const sum = useSum()
+  const filters = useFilters()
+  const data = useData()
+  
+  // ФИЛЬТРАЦИЯ НА КЛИЕНТЕ - ДОБАВЛЕН ТИП ДЛЯ star
+  const filteredStars = data.filter((star: StarWithImage) => {
+    // Поиск по названию
+    if (filters.searchTerm && !star.Title.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+      return false
+    }
+    
+    // Фильтр по типу звезды
+    if (filters.starType && star.StarType !== filters.starType) {
+      return false
+    }
+    
+    // Фильтр по минимальному расстоянию
+    if (filters.minDistance && star.Distance < parseInt(filters.minDistance)) {
+      return false
+    }
+    
+    // Фильтр по максимальному расстоянию
+    if (filters.maxDistance && star.Distance > parseInt(filters.maxDistance)) {
+      return false
+    }
+    
+    // Фильтр по минимальной светимости
+    if (filters.minMagnitude && star.Magnitude < parseFloat(filters.minMagnitude)) {
+      return false
+    }
+    
+    // Фильтр по максимальной светимости
+    if (filters.maxMagnitude && star.Magnitude > parseFloat(filters.maxMagnitude)) {
+      return false
+    }
+    
+    return true
+  })
+  
+  const [loading, setLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
   const handleFilterChange = (filterName: keyof StarFilters, value: string) => {
-    const newFilters = { ...filters, [filterName]: value }
-    setFilters(newFilters)
+    console.log('🔄 Filter change:', filterName, value)
+    dispatch(setFiltersAction({ [filterName]: value }))
   }
 
   const handleSearch = () => {
     console.log('🔍 Performing search with filters:', filters)
-    applyFilters()
+    setLoading(true)
+    // Имитация загрузки
+    setTimeout(() => setLoading(false), 300)
   }
 
-  // Обработчик очистки фильтров
   const handleClearFilters = () => {
     console.log('🗑️ Clearing all filters')
-    resetFilters()
-    applyFilters() // ← автоматически применяем пустые фильтры
-    setShowFilters(false)
+    dispatch(resetFiltersAction())
+    setLoading(true)
+    setTimeout(() => setLoading(false), 300)
   }
 
-  const starTypes = Array.from(new Set(stars.map(star => star.StarType))).filter(Boolean)
+  const handleAddToCart = (star: StarWithImage) => {
+    console.log('⭐ Добавляем звезду:', star.Title)
+    dispatch(setSumAction(1))
+  }
+
+  // ИСПРАВЛЕННАЯ СТРОКА - добавлен тип string[]
+  const starTypes: string[] = Array.from(new Set(data.map((star: StarWithImage) => star.StarType)))
+    .filter((type): type is string => type !== null && type !== undefined && type !== '')
+    .filter(Boolean)
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement
@@ -58,9 +106,11 @@ const StarsPage: FC = () => {
               <div className="page-title-container">
                 <h1 className="page-title">Звезды галактики Андромеды</h1>
                 <div className="cart-in-title">
-                  <div className="cart-icon empty">
-                    <img src="images/cart.png" alt="Starscart" />
-                    <span className="cart-count">0</span>
+                  <div className="cart-icon">
+                    <img src="/WEB-Frontend/images/cart.png" alt="Star Cart" />
+                    <span className={`cart-count ${sum === 0 ? 'empty' : ''}`}>
+                      {sum}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -143,7 +193,7 @@ const StarsPage: FC = () => {
                       <button 
                         type="button"
                         className="clear-filters-btn"
-                        onClick={handleClearFilters} // ← используем новый обработчик
+                        onClick={handleClearFilters}
                       >
                         Очистить фильтры
                       </button>
@@ -151,7 +201,7 @@ const StarsPage: FC = () => {
                         type="button"
                         className="apply-filters-btn"
                         onClick={() => {
-                          applyFilters()
+                          handleSearch()
                           setShowFilters(false)
                         }}
                       >
@@ -163,14 +213,14 @@ const StarsPage: FC = () => {
               </div>
 
               <div className="results-count">
-                Найдено звезд: {stars.length}
+                Найдено звезд: {filteredStars.length}
                 {loading && ' (загрузка...)'}
               </div>
             </div>
           </div>
 
           <section className="stars-grid">
-            {stars.map(star => (
+            {filteredStars.map((star: StarWithImage) => (
               <article key={star.ID} className="star-card">
                 <Link to={`/stars/${star.ID}`}>
                   <img 
@@ -183,6 +233,25 @@ const StarsPage: FC = () => {
                     <p>{star.Distance} св. лет</p>
                   </div>
                 </Link>
+                {/* КНОПКА В КОРЗИНУ ЗАКОММЕНТИРОВАНА
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => handleAddToCart(star)}
+                  style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    right: '10px',
+                    background: '#d83933',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ★ В корзину
+                </button>
+                */}
               </article>
             ))}
           </section>

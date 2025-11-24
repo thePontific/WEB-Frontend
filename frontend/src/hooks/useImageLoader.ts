@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react'
 
 // Правильный путь с учетом base URL
 const getDefaultImagePath = () => {
-  const base = import.meta.env.BASE_URL || ''
-  return `${base}/images/default-star.png`
+  const base = import.meta.env.BASE_URL || '/WEB-Frontend/'
+  return `${base}images/default-star.png`
 }
 
 export const useImageLoader = (defaultImage: string = getDefaultImagePath()) => {
