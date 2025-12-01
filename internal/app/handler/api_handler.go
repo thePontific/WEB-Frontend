@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -22,11 +24,25 @@ import (
 	"LAB1/internal/service"
 )
 
+// ДОБАВЬТЕ эту структуру в handler.go:
+type DjangoCalculationRequest struct {
+	CartItemID int    `json:"cart_item_id" binding:"required"`
+	StarResult string `json:"star_result" binding:"required"` // ВОТ ЭТО ПОЛЕ!
+	Token      string `json:"token" binding:"required"`
+}
 type Handler struct {
 	Repository   *repository.Repository
 	MinioService *service.MinioService
 	Redis        *redis.Client
 	JWTSecret    string
+}
+type StarVelocityRequest struct {
+	CartItemID   int     `json:"cart_item_id" binding:"required"`
+	StarID       int     `json:"star_id"`
+	VelocityMs   float64 `json:"velocity_ms"`   // скорость в м/с
+	VelocityKms  float64 `json:"velocity_kms"`  // скорость в км/с
+	VelocityType string  `json:"velocity_type"` // тип скорости
+	Token        string  `json:"token" binding:"required"`
 }
 
 // GetCurrentUserID получает ID текущего пользователя из контекста
@@ -72,6 +88,9 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	protected := api.Group("/")
 	protected.Use(h.JWTMiddleware())
 
+	// ✅ ДОБАВЛЯЕМ НОВЫЕ РОУТЫ ДЛЯ ЛАБЫ №8
+	protected.GET("/starcart/:cartID/progress", h.GetStarCartWithCalculationProgress)
+	api.POST("/starcart/update-star-velocity", h.UpdateStarVelocity) // Новый endpoint
 	// Доступ к информации о себе
 	protected.GET("/users/me", h.GetUser)
 	protected.PUT("/users/me", h.UpdateUser)
@@ -415,6 +434,10 @@ func (h *Handler) GetStarCarts(ctx *gin.Context) {
 			"date_create":      c.DateCreate,
 			"star_items_count": itemsCount,
 			"average_quantity": avgAccuracy,
+
+			// ✅ ДОБАВЛЯЕМ ПОЛЕ ДЛЯ ПРОГРЕССА РАСЧЕТА (как требует задание)
+			"stars_calculated":     0,    // Будет заполняться при асинхронном расчете
+			"calculation_progress": "0%", // Для отображения в интерфейсе
 		})
 	}
 
@@ -430,6 +453,7 @@ func (h *Handler) GetStarCarts(ctx *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 404 {object} map[string]string
 // @Router /api/starcart/{cartID} [get]
+// В handler.go, в методе GetStarCartDetails измените формирование ответа:
 func (h *Handler) GetStarCartDetails(ctx *gin.Context) {
 	cartID, err := strconv.Atoi(ctx.Param("cartID"))
 	if err != nil {
@@ -443,7 +467,6 @@ func (h *Handler) GetStarCartDetails(ctx *gin.Context) {
 		return
 	}
 
-	// ✅ ПОЛУЧАЕМ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ ИЗ ТОКЕНА
 	currentUserUUID, err := h.GetCurrentUserID(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -459,29 +482,36 @@ func (h *Handler) GetStarCartDetails(ctx *gin.Context) {
 		}
 	}
 
-	var items []gin.H
-	for _, item := range cart.Items {
-		star, _ := h.Repository.GetStar(item.StarID)
-		items = append(items, gin.H{
-			"star_id":   star.ID,
-			"title":     star.Title,
-			"quantity":  item.Quantity,
-			"speed":     item.Speed,
-			"comment":   item.Comment,
-			"image_url": h.MinioService.GetImageURL(star.ImageName),
-		})
-	}
-
+	// ✅ ИСПРАВЛЕННЫЙ ОТВЕТ (без приватных данных):
 	ctx.JSON(http.StatusOK, gin.H{
 		"id":            cart.ID,
 		"status":        cart.Status,
 		"date_create":   cart.DateCreate,
-		"creator_id":    cart.CreatorID,
+		"creator_id":    cart.CreatorID, // только UUID, не вся инфа
 		"comment":       cart.Comment,
 		"date_formed":   cart.DateFormed,
 		"date_finished": cart.DateFinished,
-		"items_count":   len(items),
-		"items":         items,
+		"items_count":   len(cart.Items),
+
+		// ✅ ТОЛЬКО НЕОБХОДИМЫЕ ПОЛЯ ITEMS:
+		"items": func() []gin.H {
+			var result []gin.H
+			for _, item := range cart.Items {
+				// Берем только нужные поля
+				result = append(result, gin.H{
+					"id":       item.ID,
+					"star_id":  item.StarID,
+					"quantity": item.Quantity,
+					"speed":    item.Speed,
+					"comment":  item.Comment,
+
+					// ✅ ДЛЯ ЛАБЫ 8 - результат асинхронного расчета:
+					"star_calculation": item.StarCalculation,
+					"calculated_at":    item.CalculatedAt,
+				})
+			}
+			return result
+		}(),
 	})
 }
 
@@ -586,7 +616,6 @@ func (h *Handler) FinishStarCart(ctx *gin.Context) {
 		return
 	}
 
-	// ✅ ПОЛУЧАЕМ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ (МОДЕРАТОРА)
 	currentUserUUID, err := h.GetCurrentUserID(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -599,11 +628,15 @@ func (h *Handler) FinishStarCart(ctx *gin.Context) {
 	case "complete":
 		cart.Status = ds.StatusCompleted
 		cart.DateFinished = &now
-		cart.ModeratorID = &currentUserUUID // ✅ ЗАПОЛНЯЕМ МОДЕРАТОРА
+		cart.ModeratorID = &currentUserUUID
+
+		// ✅ ВЫЗЫВАЕМ DJANGO ДЛЯ РАСЧЕТА СКОРОСТИ
+		go h.sendStarToDjango(cart.Items)
+
 	case "reject":
 		cart.Status = ds.StatusRejected
 		cart.DateFinished = &now
-		cart.ModeratorID = &currentUserUUID // ✅ ЗАПОЛНЯЕМ МОДЕРАТОРА
+		cart.ModeratorID = &currentUserUUID
 	default:
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
 		return
@@ -614,26 +647,8 @@ func (h *Handler) FinishStarCart(ctx *gin.Context) {
 		return
 	}
 
-	// Расчёт скорости и вывод в терминале
-	for i := range cart.Items {
-		item := &cart.Items[i]
-		if item.Star != nil {
-			velocity := calculateStarVelocity(*item.Star)
-			fmt.Printf("Star ID: %d, Title: %s, Mass: %.2f, Distance: %.2f, Velocity: %.2f m/s\n",
-				item.Star.ID, item.Star.Title, item.Star.Mass, item.Star.Distance, velocity)
+	// ❌ УБРАТЬ расчет скорости здесь!
 
-			item.Speed = float32(velocity)
-			// Сохраняем в базе
-			if err := h.Repository.UpdateCartItemSpeed(item); err != nil {
-				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-		} else {
-			fmt.Printf("StarCartItem ID %d имеет nil Star\n", item.ID)
-		}
-	}
-
-	// ✅ ПОЛУЧАЕМ ОБНОВЛЕННУЮ ЗАЯВКУ С МОДЕРАТОРОМ
 	updatedCart, err := h.Repository.GetCartByID(id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -641,6 +656,40 @@ func (h *Handler) FinishStarCart(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, updatedCart)
+}
+
+// ✅ ФУНКЦИЯ ДЛЯ ЗАПУСКА АСИНХРОННЫХ РАСЧЕТОВ (как в методичке)
+func (h *Handler) startAsyncStarCalculations(items []ds.StarCartItem) {
+	fmt.Println("🚀 Запуск асинхронных расчетов для звезд...")
+
+	for _, item := range items {
+		// Запускаем расчет для каждой звезды в отдельной горутине
+		go h.calculateStarAsync(item.ID, item.StarID)
+	}
+}
+
+// ✅ ФУНКЦИЯ ДЛЯ ВЫЗОВА DJANGO-СЕРВИСА (как в методичке)
+func (h *Handler) calculateStarAsync(cartItemID int, starID int) {
+	// URL Django-сервиса (по методичке)
+	djangoURL := "http://localhost:8000/"
+
+	// Данные для расчета звезды
+	data := map[string]interface{}{
+		"cart_item_id": cartItemID,
+		"star_id":      starID,
+	}
+
+	jsonData, _ := json.Marshal(data)
+
+	// Вызов Django-сервиса (синхронный, как в методичке)
+	resp, err := http.Post(djangoURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("❌ Ошибка вызова Django для звезды %d: %v\n", starID, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("✅ Django-сервис вызван для звезды %d (item %d)\n", starID, cartItemID)
 }
 func calculateStarVelocity(star ds.Star) float64 {
 	const G = 6.67430e-11
@@ -725,27 +774,50 @@ func (h *Handler) GetStarCartIcon(ctx *gin.Context) {
 // @Success 200 {object} map[string]string
 // @Router /api/starcart/add [post]
 func (h *Handler) AddStarToStarCart(ctx *gin.Context) {
-	// ✅ ПОЛУЧАЕМ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ ИЗ ТОКЕНА
 	currentUserUUID, err := h.GetCurrentUserID(ctx)
 	if err != nil {
+		fmt.Println("❌ Ошибка получения пользователя:", err)
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	starID, _ := strconv.Atoi(ctx.PostForm("star_id"))
-	qty, _ := strconv.Atoi(ctx.PostForm("quantity"))
+	fmt.Printf("👤 User UUID: %s\n", currentUserUUID)
+
+	starIDStr := ctx.PostForm("star_id")
+	qtyStr := ctx.PostForm("quantity")
 	comment := ctx.PostForm("comment")
+
+	fmt.Printf("📥 Получены данные: star_id='%s', quantity='%s', comment='%s'\n",
+		starIDStr, qtyStr, comment)
+
+	starID, _ := strconv.Atoi(starIDStr)
+	qty, _ := strconv.Atoi(qtyStr)
+
 	if qty < 1 {
 		qty = 1
 	}
+
+	fmt.Printf("🎯 Добавляем звезду %d, количество %d\n", starID, qty)
+
 	cart, err := h.Repository.GetDraftCartByCreatorID(currentUserUUID)
 	if err != nil {
+		fmt.Println("📦 Нет черновика, создаем новый")
 		cart = ds.StarCart{CreatorID: currentUserUUID, Status: ds.StatusDraft, DateCreate: time.Now()}
 		h.Repository.CreateCart(&cart)
 	}
+
+	fmt.Printf("🛒 Корзина ID: %d\n", cart.ID)
+
 	item := ds.StarCartItem{CartID: cart.ID, StarID: starID, Quantity: qty, Comment: comment}
 	h.Repository.AddCartItem(&item)
-	ctx.JSON(http.StatusOK, gin.H{"message": "Star added to StarCart"})
+
+	fmt.Println("✅ Звезда добавлена в заявку")
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Star added to StarCart",
+		"cart_id": cart.ID,
+		"item_id": item.ID,
+	})
 }
 
 // DeleteStarCartItem godoc

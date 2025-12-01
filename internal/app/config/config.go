@@ -27,7 +27,7 @@ type RedisConfig struct {
 }
 
 func NewConfig() (*Config, error) {
-	_ = godotenv.Load() // загружаем .env
+	_ = godotenv.Load()
 
 	configName := "config"
 	if os.Getenv("CONFIG_NAME") != "" {
@@ -49,15 +49,34 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	// JWT Secret
+	// ⭐ SERVICE HOST & PORT
+	if os.Getenv("SERVICE_HOST") != "" {
+		cfg.ServiceHost = os.Getenv("SERVICE_HOST")
+	}
+	if cfg.ServiceHost == "" {
+		cfg.ServiceHost = "localhost" // дефолт
+	}
+
+	if os.Getenv("SERVICE_PORT") != "" {
+		port, err := strconv.Atoi(os.Getenv("SERVICE_PORT"))
+		if err != nil {
+			return nil, err
+		}
+		cfg.ServicePort = port
+	}
+	if cfg.ServicePort == 0 {
+		cfg.ServicePort = 8080 // дефолт
+	}
+
+	// JWT Secret (существующий код)
 	if os.Getenv("JWT_SECRET") != "" {
 		cfg.JWTSecret = os.Getenv("JWT_SECRET")
 	}
 	if cfg.JWTSecret == "" {
-		cfg.JWTSecret = "test" // дефолт
+		cfg.JWTSecret = "test"
 	}
 
-	// Redis
+	// Redis (существующий код)
 	if os.Getenv("REDIS_HOST") != "" {
 		cfg.Redis.Host = os.Getenv("REDIS_HOST")
 	}
@@ -74,10 +93,10 @@ func NewConfig() (*Config, error) {
 	if os.Getenv("REDIS_PASSWORD") != "" {
 		cfg.Redis.Password = os.Getenv("REDIS_PASSWORD")
 	}
-	// таймауты
+
 	cfg.Redis.DialTimeout = 10 * time.Second
 	cfg.Redis.ReadTimeout = 10 * time.Second
 
-	log.Info("config parsed")
+	log.Infof("Config parsed - Server will run on: %s:%d", cfg.ServiceHost, cfg.ServicePort)
 	return cfg, nil
 }
