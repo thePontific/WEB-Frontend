@@ -6,17 +6,17 @@ const dataSlice = createSlice({
     name: "data",
     initialState: {
         Data: [], // ПУСТОЙ массив по методичке
-        SumShoppingCart: 0,
+        SumStarCart: 0,
     },
     reducers: {
         setData(state, {payload}) {
             state.Data = payload
         },
         setSum(state, {payload}) {
-            state.SumShoppingCart += payload // СУММИРУЕМ по методичке
+            state.SumStarCart += payload // СУММИРУЕМ по методичке
         },
         delSum(state) {
-            state.SumShoppingCart = 0 // ОБНУЛЯЕМ по методичке
+            state.SumStarCart = 0 // ОБНУЛЯЕМ по методичке
         }
     }
 })
@@ -25,7 +25,7 @@ export const useData = () =>
     useSelector((state: any) => state.ourData.Data)
 
 export const useSum = () =>
-    useSelector((state: any) => state.ourData.SumShoppingCart)
+    useSelector((state: any) => state.ourData.SumStarCart)
 
 export const {
     setData: setDataAction,
